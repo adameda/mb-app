@@ -30,12 +30,7 @@ RUN uv sync --frozen --no-dev
 # Définir le PATH pour utiliser le venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Copier et rendre exécutable le script d'entrée
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
 # Exposer le port
 EXPOSE 5000
 
-# Commande de démarrage (format JSON pour gestion propre des signaux)
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Pas de CMD ici - Railway utilisera railway.json
