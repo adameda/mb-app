@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full bg-gray-50">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}MB App{% endblock %}</title>
+
+    <!-- Favicon arrondi -->
+    <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='images/favicon.svg') }}">
+    <link rel="alternate icon" type="image/png" href="{{ url_for('static', filename='images/logo.png') }}">
+
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine.js pour les interactions -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <!-- Configuration Tailwind personnalisée -->
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#1e40af', // Bleu profond
+                        secondary: '#1f2937', // Noir grisé
+                        accent: '#dc2626', // Rouge accent
+                        success: '#10b981',
+                        warning: '#f59e0b',
+                        danger: '#ef4444',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+
+        /* Animations personnalisées */
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .animate-slide-down {
+            animation: slideDown 0.3s ease-out;
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.3s ease-out;
+        }
+
+        /* Effet de dégradé sur le header */
+        .nav-gradient {
+            background: linear-gradient(135deg, #1e40af 0%, #1f2937 100%);
+        }
+
+        /* Boutons avec effet brillant */
+        .btn-shine {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-shine::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        .btn-shine:hover::before {
+            left: 100%;
+        }
+
+        /* Cartes avec effet lift */
+        .card-lift {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .card-lift:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 8px 10px -6px rgb(0 0 0 / 0.1);
+        }
+
+        /* Badges animés */
+        .badge-pulse {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.8;
+            }
+        }
+
+        /* Effet de bordure progressive */
+        .border-animate {
+            position: relative;
+        }
+
+        .border-animate::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #1e40af, #dc2626);
+            transition: width 0.3s ease;
+        }
+
+        .border-animate:hover::after {
+            width: 100%;
+        }
+
+        /* Animation de défilement de texte */
+        @keyframes scroll-text {
+            0% {
+                transform: translateX(100%);
+            }
+
+            100% {
+                transform: translateX(-100%);
+            }
+        }
+
+        .animate-scroll {
+            animation: scroll-text 20s linear infinite;
+            display: inline-block;
+            white-space: nowrap;
+        }
+
+        /* Smooth scroll */
+        html {
+            scroll-behavior: smooth;
+        }
+    </style>
+</head>
+
+<body class="bg-gradient-to-br from-gray-50 via-blue-50 to-gray-50">
+    <div class="min-h-screen flex flex-col">
+        <!-- Navigation avec gradient -->
+        <nav class="nav-gradient shadow-xl sticky top-0 z-50 animate-slide-down">
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+                <div class="flex h-16 justify-between">
+                    <div class="flex">
+                        <!-- Logo et nom entreprise -->
+                        <div class="flex flex-shrink-0 items-center">
+                            <a href="/" class="flex items-center gap-3 group">
+                                <!-- Logo avec effet halo et fond -->
+                                <div class="relative">
+                                    <div
+                                        class="absolute inset-0 bg-accent rounded-full blur-md opacity-40 group-hover:opacity-60 transition-all duration-300">
+                                    </div>
+                                    <div
+                                        class="relative bg-white/95 backdrop-blur-sm rounded-full p-1.5 ring-2 ring-white/30 group-hover:ring-accent/50 transition-all duration-300">
+                                        <img src="{{ url_for('static', filename='images/logo.png') }}"
+                                            alt="Logo MINART DÉBOSSELAGE"
+                                            class="h-9 w-9 object-cover rounded-full group-hover:scale-110 transition-all duration-300">
+                                    </div>
+                                </div>
+                                <div class="flex flex-col">
+                                    <span
+                                        class="text-lg font-bold text-white group-hover:text-accent leading-tight transition-colors duration-300">MINART
+                                        DÉBOSSELAGE</span>
+                                    <span class="text-xs text-blue-200">Gestion de devis</span>
+                                </div>
+                            </a>
+                        </div>
+
+                        <!-- Menu principal avec icônes -->
+                        <div class="hidden sm:ml-8 sm:flex sm:space-x-1">
+                            <a href="{{ url_for('index') }}"
+                                class="btn-shine inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300
+                                {% if request.endpoint == 'index' %}bg-accent text-white shadow-lg shadow-accent/50{% else %}text-white hover:bg-white/10{% endif %}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25zM13.5 6a2.25 2.25 0 012.25-2.25H18A2.25 2.25 0 0120.25 6v2.25A2.25 2.25 0 0118 10.5h-2.25a2.25 2.25 0 01-2.25-2.25V6zM13.5 15.75a2.25 2.25 0 012.25-2.25H18a2.25 2.25 0 012.25 2.25V18A2.25 2.25 0 0118 20.25h-2.25A2.25 2.25 0 0113.5 18v-2.25z" />
+                                </svg>
+                                Dashboard
+                            </a>
+                            <a href="{{ url_for('devis_liste') }}"
+                                class="btn-shine inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300
+                                {% if request.endpoint and 'devis' in request.endpoint %}bg-accent text-white shadow-lg shadow-accent/50{% else %}text-white hover:bg-white/10{% endif %}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                                </svg>
+                                Devis
+                            </a>
+                            <a href="{{ url_for('factures_liste') }}"
+                                class="btn-shine inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300
+                                {% if request.endpoint and 'facture' in request.endpoint %}bg-accent text-white shadow-lg shadow-accent/50{% else %}text-white hover:bg-white/10{% endif %}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
+                                </svg>
+                                Factures
+                            </a>
+                            <a href="{{ url_for('clients_liste') }}"
+                                class="btn-shine inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300
+                                {% if request.endpoint and 'client' in request.endpoint %}bg-accent text-white shadow-lg shadow-accent/50{% else %}text-white hover:bg-white/10{% endif %}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z" />
+                                </svg>
+                                Clients
+                            </a>
+                            <a href="{{ url_for('prix_liste') }}"
+                                class="btn-shine inline-flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-300
+                                {% if request.endpoint and 'prix' in request.endpoint %}bg-accent text-white shadow-lg shadow-accent/50{% else %}text-white hover:bg-white/10{% endif %}">
+                                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M14.25 7.756a4.5 4.5 0 100 8.488M7.5 10.5h5.25m-5.25 3h5.25M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                                Prix
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action rapide -->
+                    <div class="hidden sm:ml-6 sm:flex sm:items-center gap-3">
+                        <a href="{{ url_for('devis_nouveau') }}"
+                            class="btn-shine inline-flex items-center gap-2 rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent/50 hover:bg-red-700 hover:shadow-xl hover:shadow-accent/60 hover:scale-105 transition-all duration-300">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                            </svg>
+                            Nouveau devis
+                        </a>
+
+                        <!-- Bouton Déconnexion -->
+                        <a href="{{ url_for('logout') }}"
+                            class="btn-shine inline-flex items-center gap-2 rounded-lg bg-white/10 backdrop-blur-sm px-4 py-2.5 text-sm font-medium text-white hover:bg-white/20 border border-white/20 transition-all duration-300">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke-width="1.5"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
+                            </svg>
+                            Déconnexion
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <!-- Contenu principal -->
+        <main class="flex-1">
+            <!-- Messages flash -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+            <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 mt-4">
+                {% for category, message in messages %}
+                <div
+                    class="rounded-md {% if category == 'error' %}bg-red-50 border border-red-200{% else %}bg-green-50 border border-green-200{% endif %} p-4 mb-4">
+                    <p class="text-sm {% if category == 'error' %}text-red-800{% else %}text-green-800{% endif %}">
+                        {{ message }}
+                    </p>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            {% endwith %}
+
+            <!-- Contenu des pages -->
+            {% block content %}{% endblock %}
+        </main>
+
+        <!-- Footer -->
+        <footer class="nav-gradient border-t border-blue-800/30 mt-auto">
+            <div class="overflow-hidden py-4">
+                <div class="animate-scroll">
+                    <span class="text-sm text-white/90 font-medium">
+                        © Minart Débosselage 2026 - Gestion simplifiée de devis et factures
+                    </span>
+                </div>
+            </div>
+        </footer>
+    </div>
+</body>
+
+</html>

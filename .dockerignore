@@ -1,0 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Environnement virtuel
+.venv/
+venv/
+env/
+
+# Base de données locale (SQLite)
+*.db
+*.sqlite
+*.sqlite3
+instance/
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Environment variables
+.env
+.env.local
+
+# Documentation
+README.md
+LOGS.md
+context_files/
+
+# uv
+.uv/
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml

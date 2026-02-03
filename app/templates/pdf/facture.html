@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Facture {{ facture.numero }}</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 2cm;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 10pt;
+            color: #333;
+        }
+
+        .clearfix:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        .header {
+            margin-bottom: 30px;
+            border-bottom: 3px solid #10b981;
+            padding-bottom: 15px;
+        }
+
+        .company-info {
+            float: left;
+            width: 48%;
+        }
+
+        .company-name {
+            font-size: 16pt;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .company-details {
+            font-size: 9pt;
+            color: #666;
+            line-height: 1.4;
+        }
+
+        .document-info {
+            float: right;
+            width: 48%;
+            text-align: right;
+        }
+
+        .document-title {
+            font-size: 20pt;
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .document-number {
+            font-size: 12pt;
+            margin-bottom: 10px;
+        }
+
+        .document-date {
+            font-size: 9pt;
+            color: #666;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 8pt;
+            font-weight: bold;
+            margin-top: 5px;
+        }
+
+        .status-paid {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+
+        .status-partial {
+            background-color: #fed7aa;
+            color: #92400e;
+        }
+
+        .status-pending {
+            background-color: #fee2e2;
+            color: #991b1b;
+        }
+
+        .client-section {
+            margin: 30px 0;
+            background-color: #f3f4f6;
+            padding: 15px;
+        }
+
+        .client-title {
+            font-weight: bold;
+            font-size: 11pt;
+            margin-bottom: 10px;
+            color: #10b981;
+        }
+
+        .client-details {
+            font-size: 10pt;
+            line-height: 1.5;
+        }
+
+        .reference-devis {
+            margin: 20px 0;
+            padding: 10px;
+            background-color: #eff6ff;
+            border-left: 4px solid #2563eb;
+            font-size: 9pt;
+        }
+
+        .prestations-section {
+            margin: 20px 0;
+        }
+
+        .section-title {
+            font-size: 12pt;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #10b981;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        thead {
+            background-color: #10b981;
+            color: white;
+        }
+
+        th {
+            padding: 8px;
+            text-align: left;
+            font-size: 9pt;
+            font-weight: bold;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 9pt;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #f9fafb;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .totals-section {
+            margin-top: 30px;
+            float: right;
+            width: 350px;
+        }
+
+        .totals-table {
+            width: 100%;
+            margin-bottom: 0;
+        }
+
+        .totals-table td {
+            padding: 5px 10px;
+            border: none;
+        }
+
+        .totals-row {
+            font-size: 9pt;
+        }
+
+        .totals-label {
+            text-align: right;
+            color: #666;
+        }
+
+        .totals-value {
+            text-align: right;
+            font-weight: bold;
+            width: 120px;
+        }
+
+        .payment-info {
+            background-color: #d1fae5;
+            padding: 8px 10px !important;
+        }
+
+        .reste-a-payer {
+            border-top: 2px solid #10b981;
+            font-size: 11pt;
+            background-color: #ecfdf5;
+            padding: 8px 10px !important;
+        }
+
+        .footer {
+            margin-top: 50px;
+            padding-top: 20px;
+            border-top: 1px solid #e5e7eb;
+            font-size: 8pt;
+            color: #666;
+        }
+
+        .footer-section {
+            margin-bottom: 15px;
+        }
+
+        .footer-title {
+            font-weight: bold;
+            color: #10b981;
+            margin-bottom: 5px;
+        }
+
+        .legal-mentions {
+            margin-top: 20px;
+            font-size: 7pt;
+            color: #999;
+            line-height: 1.3;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- En-tête -->
+    <div class="header clearfix">
+        <div class="company-info">
+            <div class="company-name">{{ config.nom_entreprise or 'MINART DÉBOSSELAGE' }}</div>
+            <div class="company-details">
+                {{ config.adresse or '123 Rue de l\'Exemple' }}<br>
+                {{ config.code_postal or '75000' }} {{ config.ville or 'Paris' }}<br>
+                Tél: {{ config.telephone or '01 23 45 67 89' }}<br>
+                Email: {{ config.email or 'contact@minart.fr' }}<br>
+                SIRET: {{ config.siret or '123 456 789 00000' }}
+            </div>
+        </div>
+
+        <div class="document-info">
+            <div class="document-title">FACTURE</div>
+            <div class="document-number">N° {{ facture.numero }}</div>
+            <div class="document-date">
+                Date: {{ facture.date.strftime('%d/%m/%Y') }}
+            </div>
+
+            {% set reste = facture.montant_ttc - (facture.acompte or 0) %}
+            {% if reste <= 0 %} <span class="status-badge status-paid">PAYÉE</span>
+                {% elif facture.acompte and facture.acompte > 0 %}
+                <span class="status-badge status-partial">PARTIELLE</span>
+                {% else %}
+                <span class="status-badge status-pending">EN ATTENTE</span>
+                {% endif %}
+        </div>
+    </div>
+
+    <!-- Informations client -->
+    <div class="client-section">
+        <div class="client-title">CLIENT</div>
+        <div class="client-details">
+            <strong>{{ facture.devis.client.nom }}</strong><br>
+            {% if facture.devis.client.adresse %}{{ facture.devis.client.adresse }}<br>{% endif %}
+            {% if facture.devis.client.code_postal or facture.devis.client.ville %}
+            {{ facture.devis.client.code_postal }} {{ facture.devis.client.ville }}<br>
+            {% endif %}
+            {% if facture.devis.client.telephone %}Tél: {{ facture.devis.client.telephone }}<br>{% endif %}
+            {% if facture.devis.client.email %}Email: {{ facture.devis.client.email }}{% endif %}
+        </div>
+    </div>
+
+    <!-- Référence devis -->
+    <div class="reference-devis">
+        <strong>Référence:</strong> Devis N° {{ facture.devis.numero }} du {{ facture.devis.date.strftime('%d/%m/%Y') }}
+    </div>
+
+    <!-- Prestations -->
+    <div class="prestations-section">
+        <div class="section-title">PRESTATIONS</div>
+
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 45%;">Désignation</th>
+                    <th class="text-center" style="width: 10%;">Qté</th>
+                    <th class="text-right" style="width: 15%;">Prix unit. HT</th>
+                    <th class="text-right" style="width: 15%;">TVA</th>
+                    <th class="text-right" style="width: 15%;">Total HT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ligne in facture.devis.lignes %}
+                <tr>
+                    <td>
+                        <strong>{{ ligne.description }}</strong><br>
+                        <span style="font-size: 8pt; color: #666;">{{ ligne.unite }} - {{ ligne.tache or '' }}</span>
+                    </td>
+                    <td class="text-center">{{ ligne.quantite }}</td>
+                    <td class="text-right">{{ "%.2f"|format(ligne.prix_unitaire_ht) }} €</td>
+                    <td class="text-right">{{ ligne.tva_pourcent }}%</td>
+                    <td class="text-right">{{ "%.2f"|format(ligne.prix_unitaire_ht * ligne.quantite) }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Totaux et paiement -->
+    <div class="totals-section clearfix">
+        <table class="totals-table">
+            {% set devis = facture.devis %}
+            {% set ht_brut = devis.total_ht / (1 - devis.remise_pourcent / 100) if devis.remise_pourcent else
+            devis.total_ht %}
+            {% set montant_remise = ht_brut * devis.remise_pourcent / 100 if devis.remise_pourcent else 0 %}
+            {% set tva = devis.total_ttc - devis.total_ht %}
+
+            <tr class="totals-row">
+                <td class="totals-label">Total HT brut:</td>
+                <td class="totals-value">{{ "%.2f"|format(ht_brut) }} €</td>
+            </tr>
+
+            {% if devis.remise_pourcent and devis.remise_pourcent > 0 %}
+            <tr class="totals-row" style="color: #10b981;">
+                <td class="totals-label">Remise ({{ devis.remise_pourcent }}%):</td>
+                <td class="totals-value">-{{ "%.2f"|format(montant_remise) }} €</td>
+            </tr>
+            {% endif %}
+            <tr class="totals-row">
+                <td class="totals-label">Total HT:</td>
+                <td class="totals-value">{{ "%.2f"|format(devis.total_ht) }} €</td>
+            </tr>
+
+            <tr class="totals-row">
+                <td class="totals-label">TVA:</td>
+                <td class="totals-value">{{ "%.2f"|format(tva) }} €</td>
+            </tr>
+
+            <tr class="totals-row">
+                <td class="totals-label" style="font-size: 11pt;">Montant TTC:</td>
+                <td class="totals-value" style="font-size: 11pt;">{{ "%.2f"|format(facture.montant_ttc) }} €</td>
+            </tr>
+
+            {% if facture.acompte and facture.acompte > 0 %}
+            <tr class="totals-row payment-info">
+                <td class="totals-label">Acompte versé:</td>
+                <td class="totals-value" style="color: #10b981;">-{{ "%.2f"|format(facture.acompte) }} €</td>
+            </tr>
+            {% endif %}
+
+            <tr class="totals-row reste-a-payer">
+                <td class="totals-label" style="font-size: 11pt;">Reste à payer:</td>
+                <td class="totals-value"
+                    style="font-size: 12pt; {% if reste > 0 %}color: #dc2626;{% else %}color: #10b981;{% endif %}">
+                    {{ "%.2f"|format(reste) }} €
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div style="clear: both;"></div>
+
+    <!-- Pied de page -->
+    <div class="footer">
+        {% if config.iban %}
+        <div class="footer-section">
+            <div class="footer-title">INFORMATIONS BANCAIRES</div>
+            IBAN: {{ config.iban }}<br>
+            {% if config.bic %}BIC: {{ config.bic }}{% endif %}
+        </div>
+        {% endif %}
+
+        <div class="footer-section">
+            <div class="footer-title">CONDITIONS DE RÈGLEMENT</div>
+            Paiement à 30 jours net. Escompte pour paiement anticipé non applicable.
+        </div>
+
+        <div class="legal-mentions">
+            En cas de retard de paiement, une pénalité de 3 fois le taux d'intérêt légal sera appliquée,
+            à laquelle s'ajoutera une indemnité forfaitaire pour frais de recouvrement de 40 euros.
+            {% if config.tva_intracommunautaire %}
+            <br>N° TVA intracommunautaire: {{ config.tva_intracommunautaire }}
+            {% endif %}
+        </div>
+    </div>
+</body>
+
+</html>

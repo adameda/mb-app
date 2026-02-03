@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - MB App{% endblock %}
+
+{% block content %}
+<div class="py-10" x-data='devisForm({{ lignes_dict|tojson }})'>
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8 animate-fade-in">
+            <h1
+                class="text-4xl font-bold leading-tight tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                {{ title }}</h1>
+            <p class="mt-2 text-sm text-gray-600">Créez ou modifiez votre devis avec les détails nécessaires</p>
+        </div>
+
+        <!-- Formulaire -->
+        <form method="POST" @submit="onSubmit">
+            {{ form.hidden_tag() }}
+            <input type="hidden" name="lignes_json" :value="JSON.stringify(lignes)">
+
+            <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
+                <!-- Colonne principale (2/3) -->
+                <div class="lg:col-span-2 space-y-6">
+                    <!-- Informations générales -->
+                    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Informations générales</h2>
+
+                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                            <!-- Client -->
+                            <div class="sm:col-span-2">
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Client <span
+                                        class="text-danger">*</span></label>
+                                {{ form.client_id(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                                {% if form.client_id.errors %}
+                                {% for error in form.client_id.errors %}
+                                <p class="mt-2 text-sm text-danger">{{ error }}</p>
+                                {% endfor %}
+                                {% endif %}
+                            </div>
+
+                            <!-- Date -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Date <span
+                                        class="text-danger">*</span></label>
+                                {{ form.date(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm
+                                ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary
+                                sm:text-sm") }}
+                            </div>
+
+                            <!-- Validité -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Validité (jours)</label>
+                                {{ form.validite_jours(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                            </div>
+
+                            <!-- Numéro série -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">N° série /
+                                    Immatriculation</label>
+                                {{ form.numero_serie(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                            </div>
+
+                            <!-- Inventaire -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Inventaire</label>
+                                {{ form.inventaire(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Lignes du devis -->
+                    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <h2 class="text-lg font-semibold text-gray-900">Lignes du devis</h2>
+                            <button type="button" @click="ajouterLigne"
+                                class="inline-flex items-center rounded-md bg-primary px-3 py-1.5 text-sm font-semibold text-white hover:bg-primary/90">
+                                <svg class="-ml-0.5 mr-1 h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                    <path
+                                        d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                </svg>
+                                Ajouter une ligne
+                            </button>
+                        </div>
+
+                        <!-- Tableau des lignes -->
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-300">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">Tâche</th>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">Description
+                                        </th>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">Qté</th>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">Unité</th>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">Prix HT</th>
+                                        <th class="py-2 px-2 text-left text-xs font-semibold text-gray-900">TVA %</th>
+                                        <th class="py-2 px-2 text-right text-xs font-semibold text-gray-900">Total TTC
+                                        </th>
+                                        <th class="py-2 px-2"></th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-gray-200">
+                                    <template x-for="(ligne, index) in lignes" :key="index">
+                                        <tr>
+                                            <td class="py-2 px-2">
+                                                <input type="text" x-model="ligne.tache"
+                                                    class="block w-full rounded border-gray-300 text-xs py-1 px-2">
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <input type="text" x-model="ligne.description"
+                                                    class="block w-full rounded border-gray-300 text-xs py-1 px-2">
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <input type="number" x-model.number="ligne.quantite"
+                                                    @input="calculerLigne(ligne)" min="1"
+                                                    class="block w-16 rounded border-gray-300 text-xs py-1 px-2">
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <select x-model="ligne.unite" @change="chargerPrix(ligne)"
+                                                    class="block w-24 rounded border-gray-300 text-xs py-1 px-2">
+                                                    <option value="">-</option>
+                                                    {% for prix in prix_catalogue %}
+                                                    <option value="{{ prix.code }}">{{ prix.code }}</option>
+                                                    {% endfor %}
+                                                </select>
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <input type="number" x-model.number="ligne.prix_unitaire_ht"
+                                                    @input="calculerLigne(ligne)" step="0.01" min="0"
+                                                    class="block w-24 rounded border-gray-300 text-xs py-1 px-2">
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <input type="number" x-model.number="ligne.tva_pourcent"
+                                                    @input="calculerLigne(ligne)" step="0.1" min="0" max="100"
+                                                    class="block w-16 rounded border-gray-300 text-xs py-1 px-2">
+                                            </td>
+                                            <td class="py-2 px-2 text-right">
+                                                <span class="font-semibold text-xs"
+                                                    x-text="ligne.total_ttc.toFixed(2) + ' €'"></span>
+                                            </td>
+                                            <td class="py-2 px-2">
+                                                <button type="button" @click="supprimerLigne(index)"
+                                                    class="text-danger hover:text-danger/80">
+                                                    <svg class="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                                                        <path fill-rule="evenodd"
+                                                            d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z"
+                                                            clip-rule="evenodd" />
+                                                    </svg>
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    </template>
+                                    <tr x-show="lignes.length === 0">
+                                        <td colspan="8" class="py-8 text-center text-sm text-gray-500">
+                                            Aucune ligne. Cliquez sur "Ajouter une ligne" pour commencer.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sidebar (1/3) -->
+                <div class="space-y-6">
+                    <!-- Totaux -->
+                    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Totaux</h2>
+
+                        <div class="space-y-3">
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Total HT brut</span>
+                                <span class="font-semibold" x-text="totalHT.toFixed(2) + ' €'"></span>
+                            </div>
+                            <div class="flex justify-between text-sm" x-show="remise > 0">
+                                <span class="text-gray-600">Remise <span
+                                        x-text="`(${(parseFloat(document.querySelector('[name=remise_pourcent]')?.value || 0)).toFixed(1)}%)`"
+                                        class="text-xs"></span></span>
+                                <span class="font-semibold text-danger" x-text="'-' + remise.toFixed(2) + ' €'"></span>
+                            </div>
+                            <div class="flex justify-between text-sm pt-2 border-t" x-show="remise > 0">
+                                <span class="text-gray-600">Total HT après remise</span>
+                                <span class="font-semibold" x-text="totalHTApresRemise.toFixed(2) + ' €'"></span>
+                            </div>
+                            <div class="flex justify-between text-sm">
+                                <span class="text-gray-600">Total TVA</span>
+                                <span class="font-semibold" x-text="totalTVA.toFixed(2) + ' €'"></span>
+                            </div>
+                            <div class="flex justify-between text-base pt-3 border-t">
+                                <span class="text-gray-900 font-semibold">Total TTC</span>
+                                <span class="font-bold text-lg text-primary" x-text="totalTTC.toFixed(2) + ' €'"></span>
+                            </div>
+                        </div>
+
+                        <div class="mt-6 pt-6 border-t border-gray-200 space-y-4">
+                            <!-- Remise -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Remise (%)</label>
+                                {{ form.remise_pourcent(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                            </div>
+
+                            <!-- Acompte -->
+                            <div>
+                                <label class="block text-sm font-medium text-gray-900 mb-2">Acompte (€)</label>
+                                {{ form.acompte(class="block w-full rounded-md border-0 py-2 px-3 text-gray-900
+                                shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset
+                                focus:ring-primary sm:text-sm") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+                        <div class="space-y-3">
+                            <button type="submit"
+                                class="w-full inline-flex justify-center items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
+                                {% if devis %}Enregistrer{% else %}Créer le devis{% endif %}
+                            </button>
+                            <a href="{{ url_for('devis_liste') }}"
+                                class="w-full inline-flex justify-center items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50">
+                                Annuler
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- JavaScript externe pour la gestion du formulaire -->
+<script src="{{ url_for('static', filename='js/devis-form.js') }}"></script>
+{% endblock %}

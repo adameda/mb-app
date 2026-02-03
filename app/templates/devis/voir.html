@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Devis {{ devis.numero }} - MB App{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <!-- Header avec actions -->
+        <div class="mb-8 sm:flex sm:items-center sm:justify-between animate-fade-in">
+            <div>
+                <h1
+                    class="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                    Devis {{ devis.numero }}</h1>
+                <p class="mt-2 text-sm text-gray-600">
+                    Créé le {{ devis.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                </p>
+            </div>
+            <div class="mt-4 flex gap-2 sm:mt-0">
+                <!-- Bouton Éditer (seulement si non verrouillé) -->
+                {% if devis.statut != 'accepte' and not devis.facture %}
+                <a href="{{ url_for('devis_editer', id=devis.id) }}"
+                    class="btn-shine inline-flex items-center rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-300">
+                    Éditer
+                </a>
+                {% endif %}
+
+                <!-- Bouton Marquer comme accepté (si brouillon ou envoyé) -->
+                {% if devis.statut in ['brouillon', 'envoye'] and not devis.facture %}
+                <form method="POST" action="{{ url_for('devis_changer_statut', id=devis.id) }}" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <input type="hidden" name="statut" value="accepte" />
+                    <button type="submit"
+                        class="inline-flex items-center rounded-md bg-green-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-green-500">
+                        ✓ Marquer comme accepté
+                    </button>
+                </form>
+                {% endif %}
+
+                <!-- Bouton Convertir en facture (si accepté et pas de facture) -->
+                {% if devis.statut == 'accepte' and not devis.facture %}
+                <form method="POST" action="{{ url_for('devis_convertir_facture', devis_id=devis.id) }}" class="inline">
+                    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                    <button type="submit"
+                        class="inline-flex items-center rounded-md bg-success px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-success/90">
+                        Convertir en facture
+                    </button>
+                </form>
+                {% elif devis.facture %}
+                <a href="{{ url_for('facture_voir', id=devis.facture.id) }}"
+                    class="inline-flex items-center rounded-md bg-gray-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500">
+                    Voir la facture
+                </a>
+                {% endif %}
+
+                <a href="{{ url_for('devis_pdf', id=devis.id) }}" target="_blank"
+                    class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Générer PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenu du devis -->
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+            <!-- Statut et verrouillage -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">Statut</span>
+                    <div class="flex items-center gap-2">
+                        <span class="inline-flex rounded-full px-3 py-1 text-sm font-semibold
+                            {% if devis.statut == 'accepte' %}bg-green-100 text-green-800
+                            {% elif devis.statut == 'refuse' %}bg-red-100 text-red-800
+                            {% elif devis.statut == 'envoye' %}bg-blue-100 text-blue-800
+                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                            {% if devis.statut == 'accepte' %}Accepté
+                            {% elif devis.statut == 'refuse' %}Refusé
+                            {% elif devis.statut == 'envoye' %}Envoyé
+                            {% elif devis.statut == 'brouillon' %}Brouillon
+                            {% else %}{{ devis.statut }}{% endif %}
+                        </span>
+                        {% if devis.statut == 'accepte' or devis.facture %}
+                        <span
+                            class="inline-flex items-center rounded-full bg-red-100 px-3 py-1 text-sm font-semibold text-red-800">
+                            🔒 Verrouillé
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                {% if devis.statut == 'accepte' or devis.facture %}
+                <p class="mt-2 text-xs text-gray-600">
+                    ⚠️ Ce devis ne peut plus être modifié car il a été {% if devis.facture %}converti en facture{% else
+                    %}accepté{% endif %}.
+                </p>
+                {% endif %}
+            </div>
+
+            <!-- Informations client -->
+            <div class="px-6 py-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Informations client</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Client</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.client.nom }}</p>
+                        {% if devis.client.entreprise %}
+                        <p class="text-sm text-gray-600">{{ devis.client.entreprise }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Contact</p>
+                        {% if devis.client.email %}
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.client.email }}</p>
+                        {% endif %}
+                        {% if devis.client.telephone %}
+                        <p class="text-sm text-gray-900">{{ devis.client.telephone }}</p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails du devis -->
+            <div class="px-6 py-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Détails</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Date</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.date.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Validité</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.validite_jours }} jours</p>
+                    </div>
+                    {% if devis.numero_serie %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Immatriculation</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.numero_serie }}</p>
+                    </div>
+                    {% endif %}
+                    {% if devis.inventaire %}
+                    <div>
+                        <p class="text-sm font-medium text-gray-500">Inventaire</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ devis.inventaire }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Lignes du devis -->
+            <div class="px-6 py-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Prestations</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-3 text-left text-xs font-semibold text-gray-900">Tâche</th>
+                                <th class="py-3 px-3 text-left text-xs font-semibold text-gray-900">Description</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">Qté</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">Unité</th>
+                                <th class="py-3 px-3 text-right text-xs font-semibold text-gray-900">Prix HT</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">TVA %</th>
+                                <th class="py-3 px-3 text-right text-xs font-semibold text-gray-900">Total TTC</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for ligne in devis.lignes %}
+                            <tr>
+                                <td class="py-3 px-3 text-xs text-gray-900">{{ ligne.tache }}</td>
+                                <td class="py-3 px-3 text-xs text-gray-900">{{ ligne.description }}</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{ ligne.quantite }}</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{ ligne.unite }}</td>
+                                <td class="py-3 px-3 text-right text-xs text-gray-900">{{
+                                    "%.2f"|format(ligne.prix_unitaire_ht) }} €</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{
+                                    "%.0f"|format(ligne.tva_pourcent) }}%</td>
+                                <td class="py-3 px-3 text-right text-xs font-semibold text-gray-900">{{
+                                    "%.2f"|format(ligne.total_ttc) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot class="bg-gray-50">
+                            <tr>
+                                <td colspan="6" class="py-3 px-3 text-right text-sm font-semibold text-gray-900">Total
+                                    HT brut</td>
+                                <td class="py-3 px-3 text-right text-sm font-semibold text-gray-900">
+                                    {{ "%.2f"|format(devis.total_ht / (1 - devis.remise_pourcent / 100) if
+                                    devis.remise_pourcent > 0 else devis.total_ht) }} €
+                                </td>
+                            </tr>
+                            {% if devis.remise_pourcent > 0 %}
+                            <tr>
+                                <td colspan="6" class="py-3 px-3 text-right text-sm text-gray-900">Remise {{
+                                    "%.1f"|format(devis.remise_pourcent) }}%</td>
+                                <td class="py-3 px-3 text-right text-sm font-semibold text-danger">
+                                    -{{ "%.2f"|format((devis.total_ht / (1 - devis.remise_pourcent / 100)) *
+                                    (devis.remise_pourcent / 100)) }} €
+                                </td>
+                            </tr>
+                            <tr>
+                                <td colspan="6"
+                                    class="py-3 px-3 text-right text-sm font-semibold text-gray-900 border-t border-gray-300">
+                                    Total HT après remise</td>
+                                <td
+                                    class="py-3 px-3 text-right text-sm font-semibold text-gray-900 border-t border-gray-300">
+                                    {{ "%.2f"|format(devis.total_ht) }} €
+                                </td>
+                            </tr>
+                            {% endif %}
+                            <tr>
+                                <td colspan="6" class="py-3 px-3 text-right text-sm font-semibold text-gray-900">Total
+                                    TVA</td>
+                                <td class="py-3 px-3 text-right text-sm font-semibold text-gray-900">
+                                    {{ "%.2f"|format(devis.total_ttc - devis.total_ht) }} €
+                                </td>
+                            </tr>
+                            <tr class="border-t-2 border-gray-300">
+                                <td colspan="6" class="py-3 px-3 text-right text-base font-bold text-gray-900">Total TTC
+                                </td>
+                                <td class="py-3 px-3 text-right text-lg font-bold text-primary">
+                                    {{ "%.2f"|format(devis.total_ttc) }} €
+                                </td>
+                            </tr>
+                            {% if devis.acompte > 0 %}
+                            <tr class="bg-blue-50">
+                                <td colspan="6" class="py-3 px-3 text-right text-sm font-medium text-gray-900">Acompte
+                                    demandé</td>
+                                <td class="py-3 px-3 text-right text-sm font-semibold text-blue-700">
+                                    {{ "%.2f"|format(devis.acompte) }} €
+                                </td>
+                            </tr>
+                            {% endif %}
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton retour -->
+        <div class="mt-6">
+            <a href="{{ url_for('devis_liste') }}"
+                class="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80">
+                <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Retour à la liste des devis
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

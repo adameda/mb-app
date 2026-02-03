@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Devis - MB App{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <header class="mb-8 animate-fade-in">
+        <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="md:flex md:items-center md:justify-between">
+                <div class="min-w-0 flex-1">
+                    <h1
+                        class="text-4xl font-bold leading-tight tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                        Devis</h1>
+                    <p class="mt-2 text-sm text-gray-600">Gérez vos devis et propositions commerciales</p>
+                </div>
+                <div class="mt-4 flex md:ml-4 md:mt-0">
+                    <a href="{{ url_for('devis_nouveau') }}"
+                        class="btn-shine inline-flex items-center rounded-lg bg-accent px-5 py-2.5 text-sm font-semibold text-white shadow-lg shadow-accent/50 hover:bg-red-700 hover:scale-105 transition-all duration-300">
+                        <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                            <path
+                                d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                        </svg>
+                        Nouveau devis
+                    </a>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <!-- Filtres -->
+        <div class="mb-6 flex flex-wrap gap-4 animate-scale-in">
+            <!-- Recherche -->
+            <div class="flex-1 min-w-[300px]">
+                <form method="GET" action="{{ url_for('devis_liste') }}" class="flex gap-2">
+                    <input type="text" name="search" value="{{ search }}"
+                        placeholder="Rechercher par numéro ou client..."
+                        class="block w-full rounded-lg border-2 border-gray-200 shadow-sm focus:border-accent focus:ring-accent focus:ring-2 sm:text-sm px-4 py-2.5 transition-all duration-300">
+                    <div class="flex gap-2 items-center">
+                        <button type="submit"
+                            class="btn-shine inline-flex items-center justify-center rounded-lg bg-primary px-5 py-2.5 text-sm font-semibold text-white shadow-md hover:bg-blue-700 hover:scale-105 transition-all duration-300 whitespace-nowrap h-[42px]">
+                            Rechercher
+                        </button>
+                        {% if search or statut_filter %}
+                        <a href="{{ url_for('devis_liste') }}"
+                            class="inline-flex items-center justify-center rounded-lg bg-gray-200 px-4 py-2.5 text-sm font-semibold text-gray-700 hover:bg-gray-300 transition-colors whitespace-nowrap h-[42px]">
+                            Réinitialiser
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Filtres par statut -->
+            <div class="flex gap-2">
+                <a href="{{ url_for('devis_liste') }}"
+                    class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold {% if not statut_filter %}bg-primary text-white{% else %}bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50{% endif %}">
+                    Tous
+                </a>
+                <a href="{{ url_for('devis_liste', statut='brouillon') }}"
+                    class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold {% if statut_filter == 'brouillon' %}bg-gray-500 text-white{% else %}bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50{% endif %}">
+                    Brouillon
+                </a>
+                <a href="{{ url_for('devis_liste', statut='envoye') }}"
+                    class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold {% if statut_filter == 'envoye' %}bg-blue-500 text-white{% else %}bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50{% endif %}">
+                    Envoyé
+                </a>
+                <a href="{{ url_for('devis_liste', statut='accepte') }}"
+                    class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold {% if statut_filter == 'accepte' %}bg-green-500 text-white{% else %}bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50{% endif %}">
+                    Accepté
+                </a>
+                <a href="{{ url_for('devis_liste', statut='refuse') }}"
+                    class="inline-flex items-center rounded-md px-3 py-2 text-sm font-semibold {% if statut_filter == 'refuse' %}bg-red-500 text-white{% else %}bg-white text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50{% endif %}">
+                    Refusé
+                </a>
+            </div>
+        </div>
+
+        <!-- Tableau des devis -->
+        <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+            <table class="min-w-full divide-y divide-gray-300 bg-white">
+                <thead class="bg-gray-50">
+                    <tr>
+                        <th scope="col" class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900">N° Devis
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Client</th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                            Immatriculation</th>
+                        <th scope="col" class="px-3 py-3.5 text-right text-sm font-semibold text-gray-900">Total TTC
+                        </th>
+                        <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Statut</th>
+                        <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                            <span class="sr-only">Actions</span>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200">
+                    {% if devis %}
+                    {% for d in devis %}
+                    <tr class="hover:bg-gray-50">
+                        <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                            <a href="{{ url_for('devis_voir', id=d.id) }}"
+                                class="font-bold text-primary hover:text-primary/80">
+                                {{ d.numero }}
+                            </a>
+                        </td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ d.date.strftime('%d/%m/%Y') }}
+                        </td>
+                        <td class="px-3 py-4 text-sm text-gray-900">{{ d.client.nom }}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ d.numero_serie or '-' }}</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm text-right font-semibold text-gray-900">{{
+                            "%.2f"|format(d.total_ttc) }} €</td>
+                        <td class="whitespace-nowrap px-3 py-4 text-sm">
+                            <span class="inline-flex rounded-full px-2 text-xs font-semibold leading-5
+                                    {% if d.statut == 'accepte' %}bg-green-100 text-green-800
+                                    {% elif d.statut == 'refuse' %}bg-red-100 text-red-800
+                                    {% elif d.statut == 'envoye' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                {% if d.statut == 'accepte' %}Accepté
+                                {% elif d.statut == 'refuse' %}Refusé
+                                {% elif d.statut == 'envoye' %}Envoyé
+                                {% elif d.statut == 'brouillon' %}Brouillon
+                                {% else %}{{ d.statut }}{% endif %}
+                            </span>
+                        </td>
+                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                            <a href="{{ url_for('devis_voir', id=d.id) }}"
+                                class="text-primary hover:text-primary/80 mr-3">
+                                Voir
+                            </a>
+                            <a href="{{ url_for('devis_editer', id=d.id) }}"
+                                class="text-secondary hover:text-secondary/80 mr-3">
+                                Éditer
+                            </a>
+                            <form method="POST" action="{{ url_for('devis_supprimer', id=d.id) }}" class="inline"
+                                onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce devis ?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+                                <button type="submit" class="text-danger hover:text-danger/80">
+                                    Supprimer
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7" class="px-3 py-12 text-center">
+                            <svg class="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                            </svg>
+                            <h3 class="mt-2 text-sm font-semibold text-gray-900">Aucun devis</h3>
+                            <p class="mt-1 text-sm text-gray-500">Commencez par créer votre premier devis.</p>
+                            <div class="mt-6">
+                                <a href="{{ url_for('devis_nouveau') }}"
+                                    class="inline-flex items-center rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90">
+                                    <svg class="-ml-0.5 mr-1.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                        <path
+                                            d="M10.75 4.75a.75.75 0 00-1.5 0v4.5h-4.5a.75.75 0 000 1.5h4.5v4.5a.75.75 0 001.5 0v-4.5h4.5a.75.75 0 000-1.5h-4.5v-4.5z" />
+                                    </svg>
+                                    Nouveau devis
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        {% if devis %}
+        <div class="mt-4 text-sm text-gray-500">
+            Total : {{ devis|length }} devis
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

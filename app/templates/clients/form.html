@@ -1,0 +1,139 @@
+{% extends "base.html" %}
+
+{% block title %}{{ title }} - MB App{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <div class="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+        <!-- Header -->
+        <div class="mb-8 animate-fade-in">
+            <h1
+                class="text-4xl font-bold leading-tight tracking-tight bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                {{ title }}</h1>
+            <p class="mt-2 text-sm text-gray-600">
+                {% if client %}
+                Modifiez les informations du client
+                {% else %}
+                Ajoutez un nouveau client à votre base de données
+                {% endif %}
+            </p>
+        </div>
+
+        <!-- Formulaire -->
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl">
+            <form method="POST" class="px-4 py-6 sm:p-8">
+                {{ form.hidden_tag() }}
+
+                <div class="grid grid-cols-1 gap-x-6 gap-y-8 sm:grid-cols-6">
+                    <!-- Nom -->
+                    <div class="sm:col-span-3">
+                        <label for="nom" class="block text-sm font-medium leading-6 text-gray-900">
+                            Nom <span class="text-danger">*</span>
+                        </label>
+                        <div class="mt-2">
+                            {{ form.nom(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset
+                            focus:ring-primary sm:text-sm sm:leading-6") }}
+                            {% if form.nom.errors %}
+                            {% for error in form.nom.errors %}
+                            <p class="mt-2 text-sm text-danger">{{ error }}</p>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Entreprise -->
+                    <div class="sm:col-span-3">
+                        <label for="entreprise" class="block text-sm font-medium leading-6 text-gray-900">
+                            Entreprise
+                        </label>
+                        <div class="mt-2">
+                            {{ form.entreprise(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900
+                            shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
+                            focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6") }}
+                        </div>
+                    </div>
+
+                    <!-- Email -->
+                    <div class="sm:col-span-3">
+                        <label for="email" class="block text-sm font-medium leading-6 text-gray-900">
+                            Email
+                        </label>
+                        <div class="mt-2">
+                            {{ form.email(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset
+                            focus:ring-primary sm:text-sm sm:leading-6", placeholder="exemple@email.com") }}
+                            {% if form.email.errors %}
+                            {% for error in form.email.errors %}
+                            <p class="mt-2 text-sm text-danger">{{ error }}</p>
+                            {% endfor %}
+                            {% endif %}
+                        </div>
+                    </div>
+
+                    <!-- Téléphone -->
+                    <div class="sm:col-span-3">
+                        <label for="telephone" class="block text-sm font-medium leading-6 text-gray-900">
+                            Téléphone
+                        </label>
+                        <div class="mt-2">
+                            {{ form.telephone(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900
+                            shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
+                            focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6", placeholder="06 12 34 56 78")
+                            }}
+                        </div>
+                    </div>
+
+                    <!-- Adresse -->
+                    <div class="sm:col-span-6">
+                        <label for="adresse" class="block text-sm font-medium leading-6 text-gray-900">
+                            Adresse
+                        </label>
+                        <div class="mt-2">
+                            {{ form.adresse(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset
+                            focus:ring-primary sm:text-sm sm:leading-6", rows=3) }}
+                        </div>
+                    </div>
+
+                    <!-- Code postal -->
+                    <div class="sm:col-span-2">
+                        <label for="code_postal" class="block text-sm font-medium leading-6 text-gray-900">
+                            Code postal
+                        </label>
+                        <div class="mt-2">
+                            {{ form.code_postal(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900
+                            shadow-sm ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2
+                            focus:ring-inset focus:ring-primary sm:text-sm sm:leading-6", placeholder="75001") }}
+                        </div>
+                    </div>
+
+                    <!-- Ville -->
+                    <div class="sm:col-span-4">
+                        <label for="ville" class="block text-sm font-medium leading-6 text-gray-900">
+                            Ville
+                        </label>
+                        <div class="mt-2">
+                            {{ form.ville(class="block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm
+                            ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-2 focus:ring-inset
+                            focus:ring-primary sm:text-sm sm:leading-6") }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Boutons d'action -->
+                <div class="mt-8 flex items-center justify-end gap-x-6">
+                    <a href="{{ url_for('clients_liste') }}"
+                        class="text-sm font-semibold leading-6 text-gray-900 hover:text-gray-700">
+                        Annuler
+                    </a>
+                    <button type="submit"
+                        class="rounded-md bg-primary px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-primary/90 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary">
+                        {% if client %}Enregistrer{% else %}Ajouter{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

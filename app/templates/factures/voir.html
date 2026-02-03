@@ -1,0 +1,229 @@
+{% extends "base.html" %}
+
+{% block title %}Facture {{ facture.numero }} - MB App{% endblock %}
+
+{% block content %}
+<div class="py-10">
+    <div class="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+        <!-- Header avec actions -->
+        <div class="mb-8 sm:flex sm:items-center sm:justify-between animate-fade-in">
+            <div>
+                <h1
+                    class="text-4xl font-bold bg-gradient-to-r from-primary via-accent to-secondary bg-clip-text text-transparent">
+                    Facture {{ facture.numero }}</h1>
+                <p class="mt-2 text-sm text-gray-600">
+                    Créée le {{ facture.created_at.strftime('%d/%m/%Y à %H:%M') }}
+                </p>
+            </div>
+            <div class="mt-4 flex gap-2 sm:mt-0">
+                <a href="{{ url_for('facture_pdf', id=facture.id) }}" target="_blank"
+                    class="btn-shine inline-flex items-center rounded-lg bg-accent px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-accent/50 hover:bg-red-700 hover:scale-105 transition-all duration-300">
+                    <svg class="mr-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round"
+                            d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" />
+                    </svg>
+                    Générer PDF
+                </a>
+            </div>
+        </div>
+
+        <!-- Contenu de la facture -->
+        <div class="bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl overflow-hidden">
+            <!-- État paiement -->
+            <div class="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                <div class="flex items-center justify-between">
+                    <span class="text-sm font-medium text-gray-700">État du paiement</span>
+                    <span class="inline-flex rounded-full px-3 py-1 text-sm font-semibold
+                        {% if facture.etat_paiement == 'Payé' %}bg-green-100 text-green-800
+                        {% elif facture.etat_paiement == 'Paiement partiel' %}bg-yellow-100 text-yellow-800
+                        {% else %}bg-orange-100 text-orange-800{% endif %}">
+                        {{ facture.etat_paiement }}
+                    </span>
+                </div>
+                {% if facture.etat_paiement == 'Payé' and facture.mode_paiement %}
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-sm text-gray-600">Mode de paiement</span>
+                    <span class="text-sm font-medium text-gray-900">{{ facture.mode_paiement }}</span>
+                </div>
+                {% endif %}
+                {% if facture.date_paiement %}
+                <div class="flex items-center justify-between mt-2">
+                    <span class="text-sm text-gray-600">Date de paiement</span>
+                    <span class="text-sm font-medium text-gray-900">{{ facture.date_paiement.strftime('%d/%m/%Y')
+                        }}</span>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Informations client et devis -->
+            <div class="px-6 py-6 border-b border-gray-200">
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Client</h2>
+                        <p class="text-sm font-medium text-gray-900">{{ facture.client.nom }}</p>
+                        {% if facture.client.entreprise %}
+                        <p class="text-sm text-gray-600">{{ facture.client.entreprise }}</p>
+                        {% endif %}
+                        {% if facture.client.email %}
+                        <p class="mt-2 text-sm text-gray-900">{{ facture.client.email }}</p>
+                        {% endif %}
+                        {% if facture.client.telephone %}
+                        <p class="text-sm text-gray-900">{{ facture.client.telephone }}</p>
+                        {% endif %}
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-semibold text-gray-900 mb-4">Devis associé</h2>
+                        <p class="text-sm text-gray-500">Numéro de devis</p>
+                        <p class="mt-1">
+                            <a href="{{ url_for('devis_voir', id=facture.devis_id) }}"
+                                class="text-sm font-medium text-primary hover:text-primary/80">
+                                {{ facture.devis.numero }}
+                            </a>
+                        </p>
+                        <p class="mt-2 text-sm text-gray-500">Date du devis</p>
+                        <p class="mt-1 text-sm text-gray-900">{{ facture.devis.date.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Détails financiers -->
+            <div class="px-6 py-6 border-b border-gray-200">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Détails financiers</h2>
+                <div class="space-y-3">
+                    {% set devis = facture.devis %}
+                    {% set ht_brut = devis.total_ht / (1 - devis.remise_pourcent / 100) if devis.remise_pourcent else
+                    devis.total_ht %}
+                    {% set montant_remise = ht_brut * devis.remise_pourcent / 100 if devis.remise_pourcent else 0 %}
+                    {% set tva = devis.total_ttc - devis.total_ht %}
+
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Total HT brut</span>
+                        <span class="text-sm text-gray-900">{{ "%.2f"|format(ht_brut) }} €</span>
+                    </div>
+
+                    {% if devis.remise_pourcent and devis.remise_pourcent > 0 %}
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Remise ({{ devis.remise_pourcent }}%)</span>
+                        <span class="text-sm font-semibold text-success">-{{ "%.2f"|format(montant_remise) }} €</span>
+                    </div>
+                    {% endif %}
+
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Total HT</span>
+                        <span class="text-sm text-gray-900">{{ "%.2f"|format(devis.total_ht) }} €</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">TVA</span>
+                        <span class="text-sm text-gray-900">{{ "%.2f"|format(tva) }} €</span>
+                    </div>
+
+                    <div class="flex justify-between pt-3 border-t border-gray-200">
+                        <span class="text-sm font-semibold text-gray-900">Montant total TTC</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ "%.2f"|format(facture.montant_ttc) }}
+                            €</span>
+                    </div>
+
+                    <div class="flex justify-between">
+                        <span class="text-sm text-gray-600">Acompte versé</span>
+                        <span class="text-sm font-semibold text-gray-900">{{ "%.2f"|format(facture.acompte) }} €</span>
+                    </div>
+                    <div class="flex justify-between pt-3 border-t border-gray-200">
+                        <span class="text-base font-semibold text-gray-900">Reste à payer</span>
+                        <span
+                            class="text-lg font-bold {% if facture.reste_a_payer > 0 %}text-danger{% else %}text-success{% endif %}">
+                            {{ "%.2f"|format(facture.reste_a_payer) }} €
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lignes du devis (même structure que le devis) -->
+            <div class="px-6 py-6">
+                <h2 class="text-lg font-semibold text-gray-900 mb-4">Prestations</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-300">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="py-3 px-3 text-left text-xs font-semibold text-gray-900">Tâche</th>
+                                <th class="py-3 px-3 text-left text-xs font-semibold text-gray-900">Description</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">Qté</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">Unité</th>
+                                <th class="py-3 px-3 text-right text-xs font-semibold text-gray-900">Prix HT</th>
+                                <th class="py-3 px-3 text-center text-xs font-semibold text-gray-900">TVA %</th>
+                                <th class="py-3 px-3 text-right text-xs font-semibold text-gray-900">Total TTC</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-200 bg-white">
+                            {% for ligne in facture.devis.lignes %}
+                            <tr>
+                                <td class="py-3 px-3 text-xs text-gray-900">{{ ligne.tache }}</td>
+                                <td class="py-3 px-3 text-xs text-gray-900">{{ ligne.description }}</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{ ligne.quantite }}</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{ ligne.unite }}</td>
+                                <td class="py-3 px-3 text-right text-xs text-gray-900">{{
+                                    "%.2f"|format(ligne.prix_unitaire_ht) }} €</td>
+                                <td class="py-3 px-3 text-center text-xs text-gray-900">{{
+                                    "%.0f"|format(ligne.tva_pourcent) }}%</td>
+                                <td class="py-3 px-3 text-right text-xs font-semibold text-gray-900">{{
+                                    "%.2f"|format(ligne.total_ttc) }} €</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Enregistrer paiement (si reste à payer) -->
+        {% if facture.reste_a_payer > 0 %}
+        <div class="mt-6 bg-white shadow-sm ring-1 ring-gray-900/5 sm:rounded-xl p-6">
+            <h2 class="text-lg font-semibold text-gray-900 mb-4">Enregistrer un paiement</h2>
+            <form method="POST" action="{{ url_for('facture_enregistrer_paiement', id=facture.id) }}" class="space-y-4">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}" />
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Montant (€)</label>
+                        <input type="number" name="montant" step="0.01" min="0.01" max="{{ facture.reste_a_payer }}"
+                            value="{{ facture.reste_a_payer }}"
+                            class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm"
+                            required>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-900 mb-2">Mode de paiement</label>
+                        <select name="mode_paiement"
+                            class="block w-full rounded-md border-0 py-2 px-3 text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 focus:ring-2 focus:ring-inset focus:ring-primary sm:text-sm">
+                            <option value="Paiement par virement">Virement</option>
+                            <option value="Paiement par chèque">Chèque</option>
+                            <option value="Paiement espèces">Espèces</option>
+                            <option value="Paiement par carte">Carte bancaire</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="flex justify-end">
+                    <button type="submit"
+                        class="inline-flex items-center rounded-md bg-success px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-success/90">
+                        Enregistrer le paiement
+                    </button>
+                </div>
+            </form>
+        </div>
+        {% endif %}
+
+        <!-- Bouton retour -->
+        <div class="mt-6">
+            <a href="{{ url_for('factures_liste') }}"
+                class="inline-flex items-center text-sm font-medium text-primary hover:text-primary/80">
+                <svg class="mr-2 h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fill-rule="evenodd"
+                        d="M9.707 16.707a1 1 0 01-1.414 0l-6-6a1 1 0 010-1.414l6-6a1 1 0 011.414 1.414L5.414 9H17a1 1 0 110 2H5.414l4.293 4.293a1 1 0 010 1.414z"
+                        clip-rule="evenodd" />
+                </svg>
+                Retour à la liste des factures
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
