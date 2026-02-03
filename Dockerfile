@@ -30,7 +30,16 @@ RUN uv sync --frozen --no-dev
 # Définir le PATH pour utiliser le venv
 ENV PATH="/app/.venv/bin:$PATH"
 
-# Exposer le port
-EXPOSE 5000
+# Déclarer PORT comme argument de build pour Railway
+ARG PORT
+ENV PORT=${PORT:-5000}
 
-# Pas de CMD ici - Railway utilisera railway.json
+# Variables d'environnement Flask
+ENV FLASK_APP=run.py
+ENV PYTHONUNBUFFERED=1
+
+# Exposer le port
+EXPOSE $PORT
+
+# Commande de démarrage (exec pour gestion propre des signaux)
+CMD exec gunicorn run:app --bind 0.0.0.0:$PORT --workers 2
